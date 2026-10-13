@@ -7077,10 +7077,10 @@ ui <- dashboardPage(
     )
   ),
   dashboardSidebar(
-    h4(strong("Depressive symptoms Predictor"), style = "color:yellow", align = "left"),
+    h4(strong("Depressive Symptoms Predictor"), style = "color:yellow", align = "left"),
     h6(strong("by Che Li et al"), style = "color:yellow", align = "left"),
     h5(
-      strong("This APP is only used for screening and advice, and CANNOT replace professional medical diagnosis. Any decision should be based on the advice of professional doctors"), 
+      strong("This APP is only used for screening and advice, and CANNOT replace professional medical diagnosis. Any decision should be based on the advice of professional doctors."), 
       style = "color:pink", align = "left"
     ),
     tags$hr(),
@@ -7125,7 +7125,6 @@ ui <- dashboardPage(
 
 server <- function(input, output, session) {
   
-  # 安全地清理内存，去除不存在变量的 rm() 警告
   session$onSessionEnded(function() {
     gc()
     message("Session ", session$token, " cleared at ", Sys.time())
@@ -7169,11 +7168,9 @@ server <- function(input, output, session) {
     numericInput(inputId = "HR", label = "Input heart rate (BPM):", value = 73)
   }) 
   
-  # 核心计算模块：统一获取特征、模型训练与 SHAP 分析
   calc_res <- eventReactive(input$action, {
     req(input$Age, input$PIR, input$Smoking, input$Alcohol, input$ALB, input$HR)
     
-    # 1. 读取数据
     df <- read_csv(DP, show_col_types = FALSE)
     df <- as.data.frame(df)
     
@@ -7200,7 +7197,7 @@ server <- function(input, output, session) {
     )
     xgb_lrn$train(train_task)
     
-    # 3. 构造输入的预测目标样本 (标准化)
+    
     mytest <- data.frame(
       Age     = (input$Age - mean_values$Age) / sd_values$Age,
       PIR     = (input$PIR - mean_values$PIR) / sd_values$PIR,
@@ -7210,10 +7207,8 @@ server <- function(input, output, session) {
       HR      = (input$HR - mean_values$HR) / sd_values$HR
     )
     
-    # 确保输入的列顺序与训练特征一致
     mytest <- mytest[, feature_cols, drop = FALSE]
     
-    # 4. 计算预测概率
     mytest_task_df <- cbind(mytest, Depression = df$Depression[1])
     mytest_task <- as_task_classif(mytest_task_df, target = "Depression")
     pred <- xgb_lrn$predict(mytest_task)
@@ -7222,14 +7217,12 @@ server <- function(input, output, session) {
     target_col <- if ("1" %in% prob_cols) "1" else prob_cols[2]
     ccc <- pred$prob[1, target_col]
     
-    # 5. 计算 SHAP 值
-    # 【关键修复】动态限制背景数据抽样量，避免数据量小于 100 时报错
     bg_size <- min(50, nrow(df))
     set.seed(123)
     bg_data <- as.matrix(df[sample(nrow(df), bg_size), feature_cols, drop = FALSE])
     test_matrix <- as.matrix(mytest)
     
-    # 自定义 kernelshap 的预测适配函数
+    
     pred_fun <- function(m, X) {
       predict(m, newdata = as.matrix(X))
     }
