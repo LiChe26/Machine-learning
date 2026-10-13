@@ -7084,10 +7084,10 @@ ui <- dashboardPage(
     )
   ),
   dashboardSidebar(
-    h4(strong("Depressive symptoms Predictor"), style = "color:yellow", align = "left"),
+    h4(strong("Depressive Symptoms Predictor"), style = "color:yellow", align = "left"),
     h6(strong("by Che Li et al"), style = "color:yellow", align = "left"),
     h5(
-      strong("This APP is only used for screening and advice, and CANNOT replace professional medical diagnosis. Any decision should be based on the advice of professional doctors"), 
+      strong("This APP is only used for screening and advice, and CANNOT replace professional medical diagnosis. Any decision should be based on the advice of professional doctors."), 
       style = "color:pink", align = "left"
     ),
     tags$hr(),
